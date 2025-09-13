@@ -1,28 +1,46 @@
-import pytest
-# TODO: add necessary import
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from ml.data import process_data
+from ml.model import train_model, inference
 
-# TODO: implement the first test. Change the function name and input as needed
-def test_one():
-    """
-    # add description for the first test
-    """
-    # Your code here
-    pass
+def test_train_model():
+    data = pd.read_csv("data/census.csv")
+    train, _ = train_test_split(data, test_size=0.20, random_state=42)
+    X_train, y_train, encoder, lb = process_data(
+        train,
+        categorical_features=[
+            "workclass", "education", "marital-status", "occupation",
+            "relationship", "race", "sex", "native-country"
+        ],
+        label="salary", training=True
+    )
+    model = train_model(X_train, y_train)
+    assert model is not None
 
+def test_inference_shape():
+    data = pd.read_csv("data/census.csv")
+    train, test = train_test_split(data, test_size=0.20, random_state=42)
+    X_train, y_train, encoder, lb = process_data(
+        train,
+        categorical_features=[
+            "workclass", "education", "marital-status", "occupation",
+            "relationship", "race", "sex", "native-country"
+        ],
+        label="salary", training=True
+    )
+    model = train_model(X_train, y_train)
+    X_test, y_test, _, _ = process_data(
+        test,
+        categorical_features=[
+            "workclass", "education", "marital-status", "occupation",
+            "relationship", "race", "sex", "native-country"
+        ],
+        label="salary", training=False, encoder=encoder, lb=lb
+    )
+    preds = inference(model, X_test)
+    assert len(preds) == len(y_test)
 
-# TODO: implement the second test. Change the function name and input as needed
-def test_two():
-    """
-    # add description for the second test
-    """
-    # Your code here
-    pass
+def test_labels_binary():
+    data = pd.read_csv("data/census.csv")
+    assert set(data["salary"].unique()) <= {">50K", "<=50K"}
 
-
-# TODO: implement the third test. Change the function name and input as needed
-def test_three():
-    """
-    # add description for the third test
-    """
-    # Your code here
-    pass
